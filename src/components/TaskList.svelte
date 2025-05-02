@@ -8,7 +8,7 @@
     title: string;
     description: string;
     priority: 'low' | 'medium' | 'high';
-    dueDate: Date;    // ISO timestamp
+    dueDate: Date;
     completed: boolean;
   }
 
@@ -16,7 +16,8 @@
     title: string;
     description: string;
     priority: Task['priority'];
-    dueDate: Date;    // YYYY-MM-DD
+    dueDate: Date;
+    completed: boolean;
   };
 
   let tasks = $state<Task[]>([]);
@@ -27,6 +28,7 @@
     description: '',
     priority: 'low',
     dueDate: new Date(),
+    completed: false,
   });
 
   onMount(async () => {
@@ -42,14 +44,15 @@
       title: task.title,
       description: task.description,
       priority: task.priority,
-      dueDate: new Date(task.dueDate).toISOString().split('T')[0] as unknown as Date
+      dueDate: new Date(task.dueDate).toISOString().split('T')[0] as unknown as Date,
+      completed: task.completed,
     };
   }
 
   function startCreate() {
     addingNew = true;
     editingId = 'new';
-    formValues = { title: '', description: '', priority: 'low', dueDate: new Date() };
+    formValues = { title: '', description: '', priority: 'low', dueDate: new Date(), completed: false };
   }
 
   function toFormData(values: FormValues): FormData {
@@ -73,7 +76,7 @@
       }
     } else {
       const payload = { id, ...formValues };
-      const { data, error } = await actions.updateTask(payload as Task);
+      const { data, error } = await actions.updateTask(payload);
       if (!error) {
         const idx = tasks.findIndex(t => t.id === id);
         tasks[idx] = data as Task;
@@ -86,6 +89,15 @@
     const { error } = await actions.deleteTask({ id });
     if (!error) {
       tasks = tasks.filter(task => task.id !== id);
+    }
+  }
+
+  async function toggleComplete(task: Task) {
+    const payload = { ...task, completed: !task.completed };
+    const { data, error } = await actions.updateTask(payload);
+    if (!error) {
+      const idx = tasks.findIndex(t => t.id === task.id);
+      tasks[idx] = data as Task;
     }
   }
 
@@ -108,6 +120,7 @@
       <th class="px-4 py-2">Description</th>
       <th class="px-4 py-2">Priority</th>
       <th class="px-4 py-2">Due Date</th>
+      <th class="px-4 py-2">Is Completed</th>
       <th class="px-4 py-2">Actions</th>
     </tr>
   </thead>
@@ -142,6 +155,12 @@
             class="border rounded px-2 py-1"
           />
         </td>
+        <td class="px-4 py-2 text-center">
+          <input
+            type="checkbox"
+            bind:checked={formValues.completed}
+            class="h-4 w-4" />
+        </td>
         <td class="px-4 py-2 space-x-2">
           <button
             onclick={() => confirmEdit('new')}
@@ -160,7 +179,9 @@
     {/if}
 
     {#each tasks as task (task.id)}
-      <tr class="border-t">
+      <tr class={
+        `border-t ${task.completed ? 'line-through' : ''}`
+      }>
         {#if editingId === task.id}
           <!-- Edit mode -->
           <td class="px-4 py-2">
@@ -189,6 +210,12 @@
               class="border rounded px-2 py-1"
             />
           </td>
+          <td class="px-4 py-2 text-center">
+            <input
+              type="checkbox"
+              bind:checked={formValues.completed}
+              class="h-4 w-4" />
+          </td>
           <td class="px-4 py-2 space-x-2">
             <button
               onclick={() => confirmEdit(task.id)}
@@ -209,16 +236,26 @@
           <td class="px-4 py-2">{task.description}</td>
           <td class="px-4 py-2">{task.priority}</td>
           <td class="px-4 py-2">{new Date(task.dueDate)}</td>
+          <td class="px-4 py-2 text-center">
+            <input
+              type="checkbox"
+              checked={task.completed}
+              onchange={() => toggleComplete(task)}
+              class="h-4 w-4 cursor-pointer"
+            />
+            <span>{task.completed ? 'Completed' : 'Not Completed'}</span>
+          </td>
           <td class="px-4 py-2">
             <button
               onclick={() => startEdit(task)}
-              class="px-3 py-1 bg-blue-500 text-white rounded"
+              class={`px-3 py-1 bg-blue-500 text-white rounded ${task.completed ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+              disabled={task.completed}
             >
               Edit
             </button>
             <button
               onclick={() => deleteTask(task.id)}
-              class="px-3 py-1 bg-red-500 text-white rounded"
+              class={`px-3 py-1 bg-red-500 text-white rounded ${task.completed ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
             >
               Delete
             </button>

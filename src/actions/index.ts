@@ -14,7 +14,6 @@ export const server = {
       dueDate: z.coerce.date(),
     }),
     async handler(input) {
-      console.log('inpiut', input);
       try {
         const task = await prisma.task.create({
           data: {
@@ -27,7 +26,6 @@ export const server = {
         });
         return task;
       } catch (e) {
-        console.log('error', e);
         throw new ActionError({ code: 'BAD_REQUEST', message: 'Could not create task' });
       }
     },
@@ -46,19 +44,23 @@ export const server = {
       title: z.string().optional(),
       description: z.string().optional(),
       priority: z.enum(['low','medium','high']).optional(),
-      dueDate:  z.date(),
+      dueDate:  z.coerce.date(),
     }),
     async handler(input) {
-      return prisma.task.update({
-        where: { id: input.id },
-        data: {
-          completed: input.completed,
-          title: input.title,
-          description: input.description,
-          priority: input.priority,
-          dueDate: input.dueDate && new Date(input.dueDate),
-        },
-      });
+      try {
+        return prisma.task.update({
+          where: { id: input.id },
+          data: {
+            completed: input.completed,
+            title: input.title,
+            description: input.description,
+            priority: input.priority,
+            dueDate: input.dueDate && new Date(input.dueDate),
+          },
+        });
+      } catch (e) {
+        throw new ActionError({ code: 'BAD_REQUEST', message: 'Could not update task' });
+      }
     },
   }),
 
