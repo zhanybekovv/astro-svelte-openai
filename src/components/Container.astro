@@ -1,0 +1,12 @@
+---
+import TaskList from './TaskList.svelte';
+---
+
+<div id="container" class="flex flex-col bg-white w-6xl border-2xl rounded-lg shadow-lg p-8 m-4">
+	<div class="font-bold text-3xl">Task Manager</div>
+	<TaskList client:load />
+</div>
+
+<style>
+	@reference "tailwindcss";
+</style>
