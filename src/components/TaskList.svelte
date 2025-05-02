@@ -21,6 +21,12 @@
   };
 
   let tasks = $state<Task[]>([]);
+  let filterPriority: 'all' | 'low' | 'medium' | 'high' = $state('all');
+  let filterCompleted: 'all' | 'completed' | 'active' = $state('all');
+  let filteredTasks: Task[] = $derived(tasks.filter(task => 
+      (filterPriority === 'all' || task.priority === filterPriority) &&
+      (filterCompleted === 'all' || (filterCompleted === 'completed' ? task.completed : !task.completed))
+  ))
   let editingId = $state<number | 'new' | null>(null);
   let addingNew = $state(false);
   let formValues = $state<FormValues>({
@@ -107,12 +113,28 @@
   }
 </script>
 
-<button
-  onclick={startCreate}
-  class="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
->
-  Create New Task
-</button>
+<div class="mb-4 flex items-center gap-4">
+  <button onclick={startCreate} class="px-4 py-2 bg-green-600 text-white rounded">
+    Create New Task
+  </button>
+  <label>
+    Priority:
+    <select bind:value={filterPriority} class="ml-2 border rounded px-2 py-1">
+      <option value="all">All</option>
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
+  </label>
+  <label>
+    Status:
+    <select bind:value={filterCompleted} class="ml-2 border rounded px-2 py-1">
+      <option value="all">All</option>
+      <option value="completed">Completed</option>
+      <option value="active">Active</option>
+    </select>
+  </label>
+</div>
 <table class="min-w-full border">
   <thead>
     <tr class="bg-gray-100">
@@ -178,7 +200,7 @@
       </tr>
     {/if}
 
-    {#each tasks as task (task.id)}
+    {#each filteredTasks as task (task.id)}
       <tr class={
         `border-t ${task.completed ? 'line-through' : ''}`
       }>
@@ -255,7 +277,7 @@
             </button>
             <button
               onclick={() => deleteTask(task.id)}
-              class={`px-3 py-1 bg-red-500 text-white rounded ${task.completed ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+              class="px-3 py-1 bg-red-500 text-white rounded"
             >
               Delete
             </button>
