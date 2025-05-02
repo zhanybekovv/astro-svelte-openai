@@ -1,8 +1,12 @@
 import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro:schema';
 import { PrismaClient } from '@prisma/client';
+import OpenAI from 'openai';
 
 const prisma = new PrismaClient();
+const client = new OpenAI({
+  apiKey: process.env['OPENAI_API_KEY'], // This is the default and can be omitted
+});
 
 export const server = {
   createTask: defineAction({
@@ -35,6 +39,17 @@ export const server = {
     async handler() {
       return prisma.task.findMany();
     },
+  }),
+
+  generateDescription: defineAction({
+    input: z.object({ title: z.string() }),
+    async handler(input) {
+      return  await client.responses.create({
+        model: 'gpt-4o',
+        instructions: 'Generate a task description for the following title. Give me answer NOT more than 50 words',
+        input: input.title,
+      });
+    }
   }),
 
   updateTask: defineAction({

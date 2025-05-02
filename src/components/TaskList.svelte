@@ -107,6 +107,15 @@
     }
   }
 
+  async function generateDescription() {
+    if (!formValues.title) return;
+    const { data, error } = await actions.generateDescription({ title: formValues.title });
+    console.log(data, error);
+    if (!error) {
+      formValues.description = data.output_text;
+    }
+  }
+
   function cancelEdit() {
     addingNew = false;
     editingId = null;
@@ -162,6 +171,9 @@
             class="border rounded px-2 py-1 w-full"
             placeholder="Description"
           />
+          <button onclick={generateDescription} class="px-3 py-1 bg-yellow-500 text-white rounded whitespace-nowrap">
+            Generate via AI
+          </button>
         </td>
         <td class="px-4 py-2">
           <select bind:value={formValues.priority} class="border rounded px-2 py-1">
