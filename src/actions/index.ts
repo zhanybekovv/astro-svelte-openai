@@ -16,6 +16,7 @@ export const server = {
       description: z.string().min(1),
       priority: z.enum(['low','medium','high']),
       dueDate: z.coerce.date(),
+      completed: z.boolean(),
     }),
     async handler(input) {
       try {
@@ -35,7 +36,7 @@ export const server = {
   generateDescription: defineAction({
     input: z.object({ title: z.string() }),
     async handler(input) {
-      return  await client.responses.create({
+      return await client.responses.create({
         model: 'gpt-4o',
         instructions: 'Generate a task description for the following title. Give me answer NOT more than 50 words',
         input: input.title,
@@ -46,10 +47,10 @@ export const server = {
   updateTask: defineAction({
     input: z.object({
       id: z.coerce.number(),
-      completed: z.boolean().optional(),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      priority: z.enum(['low','medium','high']).optional(),
+      completed: z.boolean(),
+      title: z.string(),
+      description: z.string(),
+      priority: z.enum(['low','medium','high']),
       dueDate:  z.coerce.date(),
     }),
     async handler(input) {

@@ -1,15 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { actions } from 'astro:actions';
-
-  interface Task {
-    id: number;
-    title: string;
-    description: string;
-    priority: 'low' | 'medium' | 'high';
-    dueDate: Date;
-    completed: boolean;
-  }
+  import type { Task } from '../interfaces/task';
 
   type FormValues = {
     title: string;
