@@ -10,7 +10,7 @@
     dueDate: Date;
     completed: boolean;
   };
-
+  let loading = $state(false);
   let tasks = $state<Task[]>([]);
   let filterPriority: 'all' | 'low' | 'medium' | 'high' = $state('all');
   let filterCompleted: 'all' | 'completed' | 'active' = $state('all');
@@ -100,10 +100,12 @@
 
   async function generateDescription() {
     if (!formValues.title) return;
+    loading = true;
     const { data, error } = await actions.generateDescription({ title: formValues.title });
     if (!error) {
       formValues.description = data.output_text;
     }
+    loading = false;
   }
 
   function cancelEdit() {
@@ -113,7 +115,7 @@
 </script>
 
 <div class="mb-4 flex items-center gap-4">
-  <button onclick={startCreate} class="px-4 py-2 bg-green-600 text-white rounded">
+  <button onclick={startCreate} class="px-4 py-2 bg-green-600 text-white rounded hover:cursor-pointer">
     Create New Task
   </button>
   <label>
@@ -147,7 +149,7 @@
   </thead>
   <tbody>
     {#if addingNew && editingId === 'new'}
-      <tr class="border-t">
+      <tr class="border-t h-30">
         <td class="px-4 py-2">
           <input
             bind:value={formValues.title}
@@ -155,14 +157,31 @@
             placeholder="Title"
           />
         </td>
-        <td class="px-4 py-2">
+        <td class="px-4 py-2 relative">
           <input
             bind:value={formValues.description}
-            class="border rounded px-2 py-1 w-full"
+            class={`border rounded px-2 py-1 w-full ${loading ? 'opacity-50 pointer-events-none' : ''}`}
             placeholder="Description"
+            disabled={loading}
           />
-          <button onclick={generateDescription} class="px-3 py-1 bg-yellow-500 text-white rounded whitespace-nowrap">
+          <button onclick={generateDescription} 
+            class={`
+              absolute
+              bottom-0
+              mt-1
+              mr-1
+              px-2
+              py-1
+              bg-yellow-500
+              text-white
+              rounded
+              flex
+              hover:cursor-pointer
+              items-center ${loading ? 'opacity-50 pointer-events-none' : ''}`} disabled={loading}>
             Generate via AI
+            {#if loading}
+              <span class="animate-spin">⏳</span>
+            {/if}
           </button>
         </td>
         <td class="px-4 py-2">
@@ -188,13 +207,13 @@
         <td class="px-4 py-2 space-x-2">
           <button
             onclick={() => confirmEdit('new')}
-            class="px-3 py-1 bg-green-500 text-white rounded"
+            class="px-3 py-1 bg-green-500 text-white rounded hover:cursor-pointer"
           >
             Confirm
           </button>
           <button
             onclick={cancelEdit}
-            class="px-3 py-1 bg-gray-300 rounded"
+            class="px-3 py-1 bg-gray-300 rounded hover:cursor-pointer"
           >
             Cancel
           </button>
@@ -243,13 +262,13 @@
           <td class="px-4 py-2 space-x-2">
             <button
               onclick={() => confirmEdit(task.id)}
-              class="px-3 py-1 bg-green-500 text-white rounded"
+              class="px-3 py-1 bg-green-500 text-white rounded hover:cursor-pointer"
             >
               Save
             </button>
             <button
               onclick={cancelEdit}
-              class="px-3 py-1 bg-gray-300 rounded"
+              class="px-3 py-1 bg-gray-300 rounded hover:cursor-pointer"
             >
               Cancel
             </button>
@@ -272,14 +291,14 @@
           <td class="px-4 py-2">
             <button
               onclick={() => startEdit(task)}
-              class={`px-3 py-1 bg-blue-500 text-white rounded ${task.completed ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+              class={`px-3 py-1 bg-blue-500 text-white rounded hover:cursor-pointer ${task.completed ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
               disabled={task.completed}
             >
               Edit
             </button>
             <button
               onclick={() => deleteTask(task.id)}
-              class="px-3 py-1 bg-red-500 text-white rounded"
+              class="px-3 py-1 bg-red-500 text-white hover:cursor-pointer rounded"
             >
               Delete
             </button>
