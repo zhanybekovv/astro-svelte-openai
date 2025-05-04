@@ -38,7 +38,6 @@ npm install
 Create a `.env` file in the root directory with:
 
 ```env
-DATABASE_URL="file:./prisma/dev.db"
 OPENAI_API_KEY="your-openai-api-key"
 ```
 
