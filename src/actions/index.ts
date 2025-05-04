@@ -1,9 +1,9 @@
 import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro:schema';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './prisma';
 import OpenAI from 'openai';
+import { createTask, getTasks, deleteTask, updateTask } from './api';
 
-const prisma = new PrismaClient();
 const client = new OpenAI({
   apiKey: process.env['OPENAI_API_KEY'], // This is the default and can be omitted
 });
@@ -19,16 +19,7 @@ export const server = {
     }),
     async handler(input) {
       try {
-        const task = await prisma.task.create({
-          data: {
-            title: input.title,
-            description: input.description,
-            priority: input.priority,
-            dueDate: new Date(input.dueDate),
-            completed: false,
-          },
-        });
-        return task;
+        return await createTask(input, prisma);
       } catch (e) {
         throw new ActionError({ code: 'BAD_REQUEST', message: 'Could not create task' });
       }
@@ -37,7 +28,7 @@ export const server = {
 
   getTasks: defineAction({
     async handler() {
-      return prisma.task.findMany();
+      return await getTasks(prisma);
     },
   }),
 
@@ -63,16 +54,7 @@ export const server = {
     }),
     async handler(input) {
       try {
-        return prisma.task.update({
-          where: { id: input.id },
-          data: {
-            completed: input.completed,
-            title: input.title,
-            description: input.description,
-            priority: input.priority,
-            dueDate: input.dueDate && new Date(input.dueDate),
-          },
-        });
+        return await updateTask(input, prisma);
       } catch (e) {
         throw new ActionError({ code: 'BAD_REQUEST', message: 'Could not update task' });
       }
@@ -82,7 +64,7 @@ export const server = {
   deleteTask: defineAction({
     input: z.object({ id: z.coerce.number() }),
     async handler(input) {
-      await prisma.task.delete({ where: { id: input.id } });
+      await deleteTask(input, prisma)
       return { success: true };
     },
   }),

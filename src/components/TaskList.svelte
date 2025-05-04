@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { actions } from 'astro:actions';
 
-  // ─── Types ────────────────────────────────────────────────────────────────
   interface Task {
     id: number;
     title: string;
@@ -110,7 +109,6 @@
   async function generateDescription() {
     if (!formValues.title) return;
     const { data, error } = await actions.generateDescription({ title: formValues.title });
-    console.log(data, error);
     if (!error) {
       formValues.description = data.output_text;
     }
